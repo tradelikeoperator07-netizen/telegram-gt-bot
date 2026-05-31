@@ -1,0 +1,29 @@
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
+
+BOT_TOKEN = "PUT_YOUR_TOKEN_HERE"
+
+CHANNEL_LINK = "https://t.me/+R9YjIH3JprU5MGU1"
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+user_id = str(update.effective_user.id)
+
+```
+with open("users.txt", "a+") as f:
+    f.seek(0)
+    users = f.read().splitlines()
+
+    if user_id not in users:
+        f.write(user_id + "\n")
+
+await update.message.reply_text(
+    f"🚀 Welcome to Gautam GT VIP!\n\nJoin Channel:\n{CHANNEL_LINK}"
+)
+```
+
+app = Application.builder().token(8264438185:AAEGGRgQ5_FU-ERfoEZU05IPtywuLorU8ssN).build()
+
+app.add_handler(CommandHandler("start", start))
+
+print("Bot is running...")
+app.run_polling()
