@@ -37,11 +37,11 @@ giveaway_markup = InlineKeyboardMarkup([
 ])
 
 # ── Captions ─────────────────────────────────────────────────────
-POSTER1_CAPTION = """🪙 Our Public session Starting In 30 Min Later Don't Miss This Opportunity 👇👇 If You Want To Earn Money 💵
+POSTER1_CAPTION = """<b>🪙 Our Public session Starting In 30 Min Later Don't Miss This Opportunity 👇👇 If You Want To Earn Money 💵
 
-💛 Join My Channel ➡️ Below & Start Earning Money 🤩"""
+💛 Join My Channel ➡️ Below &amp; Start Earning Money 🤩</b>"""
 
-POSTER2_CAPTION = """🚨 To Continue, Please Join Our Official Channel 🌟 GAUTAM GT ✅
+POSTER2_CAPTION = """<b>🚨 To Continue, Please Join Our Official Channel 🌟 GAUTAM GT ✅
 
 ━━━━━━━━━━━━━━━━━━━━━━
 🌟 Benefits To Join Channel ⚠️
@@ -55,19 +55,19 @@ POSTER2_CAPTION = """🚨 To Continue, Please Join Our Official Channel 🌟 GAU
 ▶️ AI Trading HACKBOT 🤖
 
 ━━━━━━━━━━━━━━━━━━━━━━
-🛸 JOIN FREE VIP GROUP CLICK 👇"""
+🛸 JOIN FREE VIP GROUP CLICK 👇</b>"""
 
-POSTER3_CAPTION = """🔥📊 Want 10 FREE NON MTG BUG Pocket Signals ?
+POSTER3_CAPTION = """<b>🔥📊 Want 10 FREE NON MTG BUG Pocket Signals ?
 
 👉 Click on JOIN CHANNEL now! And you will get FREE 10 Pocket SIGNALS
 
-🔗 LINK : https://t.me/+R9YjIH3JprU5MGU1"""
+🔗 LINK : https://t.me/+R9YjIH3JprU5MGU1</b>"""
 
-GIVEAWAY_CAPTION = """💸 These are the results of the trading session of the Telegram community members!!!
+GIVEAWAY_CAPTION = """<b>💸 These are the results of the trading session of the Telegram community members!!!
 
 ⚡️ Congratulations 🤑 to everyone who traded with me today and earned! If you are not making money with us yet, then subscribe to my Telegram channel!
 
-▪️ Link : https://t.me/+R9YjIH3JprU5MGU1"""
+▪️ Link : https://t.me/+R9YjIH3JprU5MGU1</b>"""
 
 # ── Funnel Messages ───────────────────────────────────────────────
 FUNNEL_MESSAGES = [
@@ -110,7 +110,8 @@ async def send_giveaway(bot, user_id):
         await bot.send_message(
             chat_id=user_id,
             text=GIVEAWAY_CAPTION,
-            reply_markup=giveaway_markup
+            reply_markup=giveaway_markup,
+            parse_mode="HTML"
         )
         print(f"Giveaway sent to {user_id}")
     except Exception as e:
@@ -129,7 +130,7 @@ async def send_funnel_message(bot, user_id, step):
 
     try:
         with open(image_file, "rb") as photo:
-            await bot.send_photo(chat_id=user_id, photo=photo, caption=caption, reply_markup=markup)
+            await bot.send_photo(chat_id=user_id, photo=photo, caption=caption, reply_markup=markup, parse_mode="HTML")
     except Exception as e:
         print(f"Failed to send funnel message to {user_id}: {e}")
         return
@@ -164,10 +165,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 1. Send poster2 as welcome
     try:
         with open("poster2.jpg", "rb") as photo:
-            await update.message.reply_photo(photo=photo, caption=POSTER2_CAPTION, reply_markup=poster2_markup)
+            await update.message.reply_photo(photo=photo, caption=POSTER2_CAPTION, reply_markup=poster2_markup, parse_mode="HTML")
     except Exception as e:
         print(f"Poster error: {e}")
-        await update.message.reply_text(POSTER2_CAPTION, reply_markup=poster2_markup)
+        await update.message.reply_text(POSTER2_CAPTION, reply_markup=poster2_markup, parse_mode="HTML")
 
     # 2. Wait 5 seconds then send circle video + buttons
     await asyncio.sleep(5)
