@@ -126,9 +126,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await asyncio.sleep(5)
     try:
         with open("video.MP4", "rb") as video:
-await update.message.reply_video_note(video_note=video)        await update.message.reply_text("👇 Choose your next step:", reply_markup=video_markup)
+            await update.message.reply_video_note(video_note=video)
+        await update.message.reply_text("👇 Choose your next step:", reply_markup=video_markup)
     except Exception as e:
         print(f"Video error: {e}")
+        await update.message.reply_text("👇 Choose your next step:", reply_markup=video_markup)
 
     # 3. Schedule funnel starting after 2 hours
     run_time = datetime.now() + timedelta(hours=FUNNEL_DELAYS[0])
