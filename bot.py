@@ -1,7 +1,7 @@
 import json, os, random, asyncio
 from datetime import datetime, timedelta
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, ChatMemberHandler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 
@@ -11,6 +11,7 @@ USERS_FILE = "users.json"
 
 FUNNEL_DELAYS = [2, 8, 24, 3, 12, 6, 24]
 
+# ── Inline Keyboards ──────────────────────────────────────────────
 poster1_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("🥳 Join Free VIP", url="https://t.me/+R9YjIH3JprU5MGU1")],
     [InlineKeyboardButton("💰 WANT FREE 1000$?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20want%20to%20claim%20the%20%241000%20profit.%20Please%20guide%20me%20with%20the%20complete%20process%20to%20get%20started%20%F0%9F%9A%80%F0%9F%92%B8")]
@@ -30,6 +31,12 @@ video_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("📉 LOSS RECOVERY", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88")]
 ])
 
+giveaway_markup = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🆕 NEW IN TRADING?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP.")],
+    [InlineKeyboardButton("📉 LOSS RECOVERY", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88")]
+])
+
+# ── Captions ─────────────────────────────────────────────────────
 POSTER1_CAPTION = """🪙 Our Public session Starting In 30 Min Later Don't Miss This Opportunity 👇👇 If You Want To Earn Money 💵
 
 💛 Join My Channel ➡️ Below & Start Earning Money 🤩"""
@@ -56,6 +63,13 @@ POSTER3_CAPTION = """🔥📊 Want 10 FREE NON MTG BUG Pocket Signals ?
 
 🔗 LINK : https://t.me/+R9YjIH3JprU5MGU1"""
 
+GIVEAWAY_CAPTION = """💸 These are the results of the trading session of the Telegram community members!!!
+
+⚡️ Congratulations 🤑 to everyone who traded with me today and earned! If you are not making money with us yet, then subscribe to my Telegram channel!
+
+▪️ Link : https://t.me/+R9YjIH3JprU5MGU1"""
+
+# ── Funnel Messages ───────────────────────────────────────────────
 FUNNEL_MESSAGES = [
     ("poster1.jpg", POSTER1_CAPTION, poster1_markup),
     ("poster3.jpg", POSTER3_CAPTION, poster3_markup),
@@ -69,6 +83,7 @@ FUNNEL_MESSAGES = [
 scheduler = AsyncIOScheduler()
 
 
+# ── Helpers ───────────────────────────────────────────────────────
 def load_users():
     if not os.path.exists(USERS_FILE):
         return {}
@@ -81,34 +96,66 @@ def save_users(users):
         json.dump(users, f)
 
 
+# ── Giveaway sender (fires 15 min after /start) ───────────────────
+async def send_giveaway(bot, user_id):
+    try:
+        with open("GIVWAY 1.PNG", "rb") as p1, open("GIVWAY 2.PNG", "rb") as p2:
+            await bot.send_media_group(
+                chat_id=user_id,
+                media=[
+                    InputMediaPhoto(p1),
+                    InputMediaPhoto(p2),
+                ]
+            )
+        await bot.send_message(
+            chat_id=user_id,
+            text=GIVEAWAY_CAPTION,
+            reply_markup=giveaway_markup
+        )
+        print(f"Giveaway sent to {user_id}")
+    except Exception as e:
+        print(f"Giveaway error for {user_id}: {e}")
+
+
+# ── Funnel sender ─────────────────────────────────────────────────
 async def send_funnel_message(bot, user_id, step):
     users = load_users()
     uid = str(user_id)
     if uid not in users:
         return
+
     msg_index = step % len(FUNNEL_MESSAGES)
     image_file, caption, markup = FUNNEL_MESSAGES[msg_index]
+
     try:
         with open(image_file, "rb") as photo:
             await bot.send_photo(chat_id=user_id, photo=photo, caption=caption, reply_markup=markup)
     except Exception as e:
-        print(f"Failed to send to {user_id}: {e}")
+        print(f"Failed to send funnel message to {user_id}: {e}")
         return
+
     next_step = step + 1
-    if next_step < len(FUNNEL_DELAYS):
-        delay_hours = FUNNEL_DELAYS[next_step]
-    else:
-        delay_hours = random.randint(3, 24)
+    delay_hours = FUNNEL_DELAYS[next_step] if next_step < len(FUNNEL_DELAYS) else random.randint(3, 24)
+
     users[uid]["step"] = next_step
     save_users(users)
+
     run_time = datetime.now() + timedelta(hours=delay_hours)
-    scheduler.add_job(send_funnel_message, trigger=DateTrigger(run_date=run_time), args=[bot, user_id, next_step], id=f"funnel_{user_id}_{next_step}", replace_existing=True)
-    print(f"Next message for {user_id} in {delay_hours} hours")
+    scheduler.add_job(
+        send_funnel_message,
+        trigger=DateTrigger(run_date=run_time),
+        args=[bot, user_id, next_step],
+        id=f"funnel_{user_id}_{next_step}",
+        replace_existing=True
+    )
+    print(f"Next funnel message for {user_id} in {delay_hours} hours (step {next_step})")
 
 
+# ── /start handler ────────────────────────────────────────────────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     uid = str(user.id)
+
     users = load_users()
     if uid not in users:
         users[uid] = {"step": 0, "joined": str(datetime.now())}
@@ -132,12 +179,28 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print(f"Video error: {e}")
         await update.message.reply_text("👇 Choose your next step:", reply_markup=video_markup)
 
-    # 3. Schedule funnel starting after 2 hours
-    run_time = datetime.now() + timedelta(hours=FUNNEL_DELAYS[0])
-    scheduler.add_job(send_funnel_message, trigger=DateTrigger(run_date=run_time), args=[context.bot, user.id, 0], id=f"funnel_{user.id}_0", replace_existing=True)
-    print(f"Funnel started for {user.first_name}")
+    # 3. Schedule giveaway images after 15 minutes
+    scheduler.add_job(
+        send_giveaway,
+        trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=15)),
+        args=[context.bot, user.id],
+        id=f"giveaway_{user.id}",
+        replace_existing=True
+    )
+
+    # 4. Schedule funnel starting after 2 hours
+    scheduler.add_job(
+        send_funnel_message,
+        trigger=DateTrigger(run_date=datetime.now() + timedelta(hours=FUNNEL_DELAYS[0])),
+        args=[context.bot, user.id, 0],
+        id=f"funnel_{user.id}_0",
+        replace_existing=True
+    )
+
+    print(f"Funnel + Giveaway scheduled for {user.first_name}")
 
 
+# ── /broadcast handler ────────────────────────────────────────────
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = " ".join(context.args)
     users = load_users()
@@ -148,9 +211,10 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
             sent += 1
         except Exception:
             pass
-    await update.message.reply_text(f"Broadcast sent to {sent} users.")
+    await update.message.reply_text(f"✅ Broadcast sent to {sent} users.")
 
 
+# ── Channel post forwarder ─────────────────────────────────────────
 async def channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     post = update.channel_post
     if not post:
@@ -159,17 +223,25 @@ async def channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sent = 0
     for user_id in users:
         try:
-            await context.bot.copy_message(chat_id=int(user_id), from_chat_id=post.chat.id, message_id=post.message_id, reply_markup=poster2_markup)
+            await context.bot.copy_message(
+                chat_id=int(user_id),
+                from_chat_id=post.chat.id,
+                message_id=post.message_id,
+                reply_markup=poster2_markup
+            )
             sent += 1
         except Exception as e:
             print(e)
-    print(f"Forwarded to {sent} users")
+    print(f"Channel post forwarded to {sent} users")
 
 
+# ── App setup ─────────────────────────────────────────────────────
 app = Application.builder().token(BOT_TOKEN).build()
 scheduler.start()
+
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("broadcast", broadcast))
-app.add_handler(MessageHandler(filters.ALL, channel_post))
-print("Bot is running...")
+app.add_handler(MessageHandler(filters.ChatType.CHANNEL, channel_post))
+
+print("✅ Bot is running...")
 app.run_polling()
