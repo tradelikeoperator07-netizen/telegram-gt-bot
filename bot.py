@@ -13,8 +13,9 @@ FUNNEL_DELAYS = [2, 8, 24, 3, 12, 6, 24]
 
 # ── Inline Keyboards ──────────────────────────────────────────────
 poster1_markup = InlineKeyboardMarkup([
-    [InlineKeyboardButton("🥳 Join Free VIP", url="https://t.me/+R9YjIH3JprU5MGU1")],
-    [InlineKeyboardButton("💰 WANT FREE 1000$?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20want%20to%20claim%20the%20%241000%20profit.%20Please%20guide%20me%20with%20the%20complete%20process%20to%20get%20started%20%F0%9F%9A%80%F0%9F%92%B8")]
+    [InlineKeyboardButton("🔴 FREE VIP GROUP 📈", url="https://t.me/+R9YjIH3JprU5MGU1")],
+    [InlineKeyboardButton("🔵 JOIN LOSS RECOVERY 🎯", url="https://t.me/GautamTraderAdmin...")],
+    [InlineKeyboardButton("🟢 CONTACT OWNER 🤝", url="https://t.me/GautamTraderAdmin...")]
 ])
 
 poster2_markup = InlineKeyboardMarkup([
