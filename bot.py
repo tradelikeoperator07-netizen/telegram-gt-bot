@@ -37,13 +37,11 @@ giveaway_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("📉 LOSS RECOVERY", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88")]
 ])
 
-# ✅ NEW: poster5 markup
 poster5_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("💰 WANT FREE 1000$?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20want%20to%20claim%20the%20%241000%20profit.%20Please%20guide%20me%20with%20the%20complete%20process%20to%20get%20started%20%F0%9F%9A%80%F0%9F%92%B8")],
     [InlineKeyboardButton("📉 LOSS RECOVERY", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88")]
 ])
 
-# ✅ NEW: withdrawal markup
 withdrawal_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("🆕 NEW IN TRADING?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP.")],
     [InlineKeyboardButton("📉 LOSS RECOVERY", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88.")]
@@ -82,10 +80,8 @@ GIVEAWAY_CAPTION = """<b>💸 These are the results of the trading session of th
 
 ▪️ Link : https://t.me/+R9YjIH3JprU5MGU1</b>"""
 
-# ✅ NEW: poster5 caption
 POSTER5_CAPTION = """<b>Placed $11,000 Withdrawal IN INR - ₹10,00,000 Money On the Way 💸</b>"""
 
-# ✅ NEW: withdrawal caption
 WITHDRAWAL_CAPTION = """<b>Received $11,000 Withdrawal ✅
 
 Yes, 📈 $11,000 Dollar 💸 (₹10,00,000 in INR) straight cash out — trading se REAL MONEY bahar aa raha hai, sirf balance dikha ne ka game nahi 🚫💳
@@ -119,7 +115,7 @@ def save_users(users):
         json.dump(users, f)
 
 
-# ✅ NEW: withdrawal sender (fires 55 min after poster5)
+# ── Withdrawal sender ─────────────────────────────────────────────
 async def send_withdrawal(bot, user_id):
     try:
         with open("WITHDRAWL1.jpg", "rb") as w1, open("WITHDRAWL2.jpg", "rb") as w2:
@@ -130,7 +126,6 @@ async def send_withdrawal(bot, user_id):
                     InputMediaPhoto(w2, caption=WITHDRAWAL_CAPTION, parse_mode="HTML"),
                 ]
             )
-        # Buttons sent right after (media_group doesn't support reply_markup)
         await bot.send_message(
             chat_id=user_id,
             text="👇 Choose your next step:",
@@ -142,7 +137,7 @@ async def send_withdrawal(bot, user_id):
         print(f"Withdrawal error for {user_id}: {e}")
 
 
-# ✅ NEW: poster5 sender (fires 30 min after giveaway)
+# ── Poster5 sender ────────────────────────────────────────────────
 async def send_poster5(bot, user_id):
     try:
         with open("poster5.jpg", "rb") as photo:
@@ -152,27 +147,24 @@ async def send_poster5(bot, user_id):
                 caption=POSTER5_CAPTION,
                 reply_markup=poster5_markup,
                 parse_mode="HTML",
-                disable_web_page_preview=True  # ✅ No link preview
+                disable_web_page_preview=True
             )
         print(f"Poster5 sent to {user_id}")
 
-        # ✅ Schedule withdrawal 55 minutes after poster5
+        # ✅ TEST MODE: 1 minute (change back to 55 after testing)
         scheduler.add_job(
             send_withdrawal,
-            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=55)),
+            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=1)),
             args=[bot, user_id],
             id=f"withdrawal_{user_id}",
             replace_existing=True
         )
-        print(f"Withdrawal scheduled for {user_id} in 55 minutes")
+        print(f"Withdrawal scheduled for {user_id} in 1 minute (TEST MODE)")
     except Exception as e:
         print(f"Poster5 error for {user_id}: {e}")
 
 
-# ── Giveaway sender (fires 15 min after /start) ───────────────────
-# ✅ CHANGED: GIVWAY 1/2.PNG → IPHONE1/2.jpg
-# ✅ CHANGED: Text merged as caption on second image (no separate message)
-# ✅ CHANGED: disable_web_page_preview=True to remove View Channel preview
+# ── Giveaway sender ───────────────────────────────────────────────
 async def send_giveaway(bot, user_id):
     try:
         with open("IPHONE1.jpg", "rb") as p1, open("IPHONE2.jpg", "rb") as p2:
@@ -180,27 +172,26 @@ async def send_giveaway(bot, user_id):
                 chat_id=user_id,
                 media=[
                     InputMediaPhoto(p1),
-                    InputMediaPhoto(p2, caption=GIVEAWAY_CAPTION, parse_mode="HTML"),  # ✅ Caption merged with image
+                    InputMediaPhoto(p2, caption=GIVEAWAY_CAPTION, parse_mode="HTML"),
                 ]
             )
-        # ✅ Buttons sent right after (media_group doesn't support reply_markup)
         await bot.send_message(
             chat_id=user_id,
             text="👇 Choose your next step:",
             reply_markup=giveaway_markup,
-            disable_web_page_preview=True  # ✅ No link preview
+            disable_web_page_preview=True
         )
         print(f"Giveaway sent to {user_id}")
 
-        # ✅ Schedule poster5 30 minutes after giveaway
+        # ✅ TEST MODE: 1 minute (change back to 30 after testing)
         scheduler.add_job(
             send_poster5,
-            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=30)),
+            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=1)),
             args=[bot, user_id],
             id=f"poster5_{user_id}",
             replace_existing=True
         )
-        print(f"Poster5 scheduled for {user_id} in 30 minutes")
+        print(f"Poster5 scheduled for {user_id} in 1 minute (TEST MODE)")
 
     except Exception as e:
         print(f"Giveaway error for {user_id}: {e}")
@@ -268,10 +259,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print(f"Video error: {e}")
         await update.message.reply_text("👇 Choose your next step:", reply_markup=video_markup)
 
-    # 3. Schedule giveaway images after 15 minutes
+    # 3. ✅ TEST MODE: Giveaway after 1 minute (change back to 15 after testing)
     scheduler.add_job(
         send_giveaway,
-        trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=15)),
+        trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=1)),
         args=[context.bot, user.id],
         id=f"giveaway_{user.id}",
         replace_existing=True
