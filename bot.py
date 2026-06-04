@@ -147,7 +147,6 @@ async def send_poster5(bot, user_id):
                 caption=POSTER5_CAPTION,
                 reply_markup=poster5_markup,
                 parse_mode="HTML",
-                disable_web_page_preview=True
             )
         print(f"Poster5 sent to {user_id}")
 
