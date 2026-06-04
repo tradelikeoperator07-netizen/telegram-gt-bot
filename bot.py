@@ -146,19 +146,19 @@ async def send_poster5(bot, user_id):
                 photo=photo,
                 caption=POSTER5_CAPTION,
                 reply_markup=poster5_markup,
-                parse_mode="HTML",
+                parse_mode="HTML"
             )
         print(f"Poster5 sent to {user_id}")
 
-        # ✅ TEST MODE: 1 minute (change back to 55 after testing)
+        # ✅ NORMAL: 55 minutes after poster5
         scheduler.add_job(
             send_withdrawal,
-            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=1)),
+            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=55)),
             args=[bot, user_id],
             id=f"withdrawal_{user_id}",
             replace_existing=True
         )
-        print(f"Withdrawal scheduled for {user_id} in 1 minute (TEST MODE)")
+        print(f"Withdrawal scheduled for {user_id} in 55 minutes")
     except Exception as e:
         print(f"Poster5 error for {user_id}: {e}")
 
@@ -182,15 +182,15 @@ async def send_giveaway(bot, user_id):
         )
         print(f"Giveaway sent to {user_id}")
 
-        # ✅ TEST MODE: 1 minute (change back to 30 after testing)
+        # ✅ NORMAL: 30 minutes after giveaway
         scheduler.add_job(
             send_poster5,
-            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=1)),
+            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=30)),
             args=[bot, user_id],
             id=f"poster5_{user_id}",
             replace_existing=True
         )
-        print(f"Poster5 scheduled for {user_id} in 1 minute (TEST MODE)")
+        print(f"Poster5 scheduled for {user_id} in 30 minutes")
 
     except Exception as e:
         print(f"Giveaway error for {user_id}: {e}")
@@ -258,10 +258,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print(f"Video error: {e}")
         await update.message.reply_text("👇 Choose your next step:", reply_markup=video_markup)
 
-    # 3. ✅ TEST MODE: Giveaway after 1 minute (change back to 15 after testing)
+    # 3. ✅ NORMAL: Giveaway after 15 minutes
     scheduler.add_job(
         send_giveaway,
-        trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=1)),
+        trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=15)),
         args=[context.bot, user.id],
         id=f"giveaway_{user.id}",
         replace_existing=True
