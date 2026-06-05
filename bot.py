@@ -1,61 +1,69 @@
-import json, os, random, asyncio
+import json, os, asyncio
 from datetime import datetime, timedelta
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, ChatMemberHandler
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, InputMediaVideo
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 
 BOT_TOKEN = "8264438185:AAEGGRgQ5_FU-ERfoEZU05IPtywuLorU8ss"
-CHANNEL_LINK = "https://t.me/+R9YjIH3JprU5MGU1"
 USERS_FILE = "users.json"
 
-FUNNEL_DELAYS = [2, 8, 24, 3, 12, 6, 24]
+# ── TEST MODE: all delays = 1 minute ─────────────────────────────
+# Change to False and set real times when ready for production
+TEST_MODE = True
+
+def mins(m):
+    return timedelta(minutes=1) if TEST_MODE else timedelta(minutes=m)
+
+def hours(h):
+    return timedelta(minutes=1) if TEST_MODE else timedelta(hours=h)
+
 
 # ── Inline Keyboards ──────────────────────────────────────────────
-poster1_markup = InlineKeyboardMarkup([
-    [InlineKeyboardButton("🔴 FREE VIP GROUP 📈", url="https://t.me/+R9YjIH3JprU5MGU1")],
-    [InlineKeyboardButton("🔵 JOIN LOSS RECOVERY 🎯", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88.")],
-    [InlineKeyboardButton("🟢 CONTACT OWNER 🤝", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP.")]
+msg1_markup = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🔴 JOIN FREE GROUP CLICK 📈", url="https://telegram.me/+4Ds1pUXu4VUzMzhl")],
+    [InlineKeyboardButton("🟢 CONTACT OWNER 🤝", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP%E2%9D%A4%EF%B8%8F%F0%9F%94%A5")]
 ])
 
-poster2_markup = InlineKeyboardMarkup([
-    [InlineKeyboardButton("🥳 Join Free VIP", url="https://t.me/+R9YjIH3JprU5MGU1")],
-    [InlineKeyboardButton("🆕 NEW IN TRADING?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP.")]
+msg2_markup = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🤖🔥 GET SIGNAL BOT ACCESS", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir,%20I%20Want%20Your%20Quotex%20Signal%20Bot%20%F0%9F%A4%96%F0%9F%94%A5%0A%0APlease%20Guide%20Me%20On%20The%20Process%20To%20Get%20Access.%20%E2%9D%A4%EF%B8%8F")]
 ])
 
-poster3_markup = InlineKeyboardMarkup([
-    [InlineKeyboardButton("✅ JOIN NOW", url="https://t.me/+R9YjIH3JprU5MGU1")]
+msg3_markup = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🔴 JOIN FREE GROUP CLICK 📈", url="https://telegram.me/+4Ds1pUXu4VUzMzhl")],
+    [InlineKeyboardButton("🟢 CONTACT OWNER 🤝", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP%E2%9D%A4%EF%B8%8F%F0%9F%94%A5")]
 ])
 
-video_markup = InlineKeyboardMarkup([
-    [InlineKeyboardButton("💰 WANT FREE 1000$?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20want%20to%20claim%20the%20%241000%20profit.%20Please%20guide%20me%20with%20the%20complete%20process%20to%20get%20started%20%F0%9F%9A%80%F0%9F%92%B8")],
-    [InlineKeyboardButton("📉 LOSS RECOVERY", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88")]
+msg4_markup = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🔴 JOIN FREE GROUP CLICK 📈", url="https://telegram.me/+4Ds1pUXu4VUzMzhl")],
+    [InlineKeyboardButton("🟢 CONTACT OWNER 🤝", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP%E2%9D%A4%EF%B8%8F%F0%9F%94%A5")]
 ])
 
-giveaway_markup = InlineKeyboardMarkup([
-    [InlineKeyboardButton("🆕 NEW IN TRADING?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP.")],
-    [InlineKeyboardButton("📉 LOSS RECOVERY", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88")]
+msg5_markup = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🔴 JOIN FREE GROUP CLICK 📈", url="https://telegram.me/+4Ds1pUXu4VUzMzhl")],
+    [InlineKeyboardButton("📉 LOSS RECOVERY 🙏", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir%2C%20I%20Want%20To%20Recover%20My%20Losses.%0A%0APlease%20Guide%20Me%20And%20Help%20Me%20Join%20Your%20VIP")]
 ])
 
-poster5_markup = InlineKeyboardMarkup([
-    [InlineKeyboardButton("💰 WANT FREE 1000$?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20want%20to%20claim%20the%20%241000%20profit.%20Please%20guide%20me%20with%20the%20complete%20process%20to%20get%20started%20%F0%9F%9A%80%F0%9F%92%B8")],
-    [InlineKeyboardButton("📉 LOSS RECOVERY", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88")]
+msg6_markup = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🚀 JOIN SESSION ❤️🔥", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir%2C%20I%20Want%20To%20Join%20Your%20Public%20Session%20%F0%9F%9A%80%0A%0APlease%20Guide%20Me%20On%20How%20To%20Participate%20And%20Learn%20From%20You.%20%E2%9D%A4%EF%B8%8F%F0%9F%94%A5")]
 ])
 
-withdrawal_markup = InlineKeyboardMarkup([
-    [InlineKeyboardButton("🆕 NEW IN TRADING?", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP.")],
-    [InlineKeyboardButton("📉 LOSS RECOVERY", url="https://t.me/GautamTraderAdmin?text=Gautam%20Sir%2C%20I%20am%20in%20loss%20right%20now%20and%20I%20want%20to%20recover%20my%20losses%20with%20proper%20guidance.%20Please%20help%20me%20join%20your%20VIP%20Loss%20Recovery%20Session%20%F0%9F%99%8F%F0%9F%93%88.")]
-])
 
-# ── Captions ─────────────────────────────────────────────────────
-POSTER1_CAPTION = """<b>🪙 Our Public session Starting In 30 Min Later Don't Miss This Opportunity 👇👇 If You Want To Earn Money 💵
+# ── Captions ──────────────────────────────────────────────────────
+MSG1_CAPTION = """<b>💰 You're Here Because You Want To Earn Money! 💰
 
-💛 Join My Channel ➡️ Below &amp; Start Earning Money 🤩</b>"""
-
-POSTER2_CAPTION = """<b>🚨 To Continue, Please Join Our Official Channel 🌟 GAUTAM GT ✅
+✅ Join My Channel Below & Start Earning Money 🤩🚀
 
 ━━━━━━━━━━━━━━━━━━━━━━
-🌟 Benefits To Join Channel ⚠️
+🌟 The Alpha Traderz - Your Path To Profits! 📈
+━━━━━━━━━━━━━━━━━━━━━━
+
+👇 Click Below To Join Now!</b>"""
+
+MSG3_CAPTION = """<b>🚨 To Continue, Please Join Our Official Channel 🌟
+
+━━━━━━━━━━━━━━━━━━━━━━
+⚡️ THE ALPHA TRADERZ ⚡️
 ━━━━━━━━━━━━━━━━━━━━━━
 
 ▶️ 95% Accuracy Trades 📈
@@ -66,40 +74,45 @@ POSTER2_CAPTION = """<b>🚨 To Continue, Please Join Our Official Channel 🌟 
 ▶️ AI Trading HACKBOT 🤖
 
 ━━━━━━━━━━━━━━━━━━━━━━
-🛸 JOIN FREE VIP GROUP CLICK 👇</b>"""
+🔗 JOIN FREE GROUP: https://telegram.me/+4Ds1pUXu4VUzMzhl
+━━━━━━━━━━━━━━━━━━━━━━
 
-POSTER3_CAPTION = """<b>🔥📊 Want 10 FREE NON MTG BUG Pocket Signals ?
+👇 Choose Your Next Step!</b>"""
 
-👉 Click on JOIN CHANNEL now! And you will get FREE 10 Pocket SIGNALS
+MSG4_CAPTION = """<b>💸 You're Here Because You Want To Earn Money! 💰
 
-🔗 LINK : https://t.me/+R9YjIH3JprU5MGU1</b>"""
+👀 SEE MY WITHDRAWAL HISTORY 👇
+💎 THIS IS HOW A PROFITABLE TRADER LOOKS LIKE! 💎
 
-GIVEAWAY_CAPTION = """<b>💸 These are the results of the trading session of the Telegram community members!!!
+━━━━━━━━━━━━━━━━━━━━━━
+✅ Join My Channel Below & Start Earning Money 🤩
+━━━━━━━━━━━━━━━━━━━━━━
 
-⚡️ Congratulations 🤑 to everyone who traded with me today and earned! If you are not making money with us yet, then subscribe to my Telegram channel!
+👇 Take Action Now!</b>"""
 
-▪️ Link : https://t.me/+R9YjIH3JprU5MGU1</b>"""
+MSG5_CAPTION = """<b>👋 Hello! Are You Ready To Earn Money With Trading? 💰
 
-POSTER5_CAPTION = """<b>Placed $11,000 Withdrawal IN INR - ₹10,00,000 Money On the Way 💸</b>"""
+🚫 No Experience Needed! 🚫
 
-WITHDRAWAL_CAPTION = """<b>Received $11,000 Withdrawal ✅
+━━━━━━━━━━━━━━━━━━━━━━
+🏆 I Helped 10,000+ New Members Start EARNING! 📈
+━━━━━━━━━━━━━━━━━━━━━━
 
-Yes, 📈 $11,000 Dollar 💸 (₹10,00,000 in INR) straight cash out — trading se REAL MONEY bahar aa raha hai, sirf balance dikha ne ka game nahi 🚫💳
+📊 These Are The Real Results Of My Clients Earning With Me! 🔥
 
-Now tell me… Tum logon ka profit sirf screenshot tak limited rahega ya withdrawal tak? 🧠🔥</b>"""
+💪 You Can Be Next! Join Now & Start Your Journey! 🚀
 
-# ── Funnel Messages ───────────────────────────────────────────────
-FUNNEL_MESSAGES = [
-    ("poster1.jpg", POSTER1_CAPTION, poster1_markup),
-    ("poster3.jpg", POSTER3_CAPTION, poster3_markup),
-    ("poster2.jpg", POSTER2_CAPTION, poster2_markup),
-    ("poster1.jpg", POSTER1_CAPTION, poster1_markup),
-    ("poster3.jpg", POSTER3_CAPTION, poster3_markup),
-    ("poster2.jpg", POSTER2_CAPTION, poster2_markup),
-    ("poster1.jpg", POSTER1_CAPTION, poster1_markup),
-]
+👇 Choose Your Next Step!</b>"""
 
-scheduler = AsyncIOScheduler()
+MSG6_CAPTION = """<b>🚀 Public Trading Session Is LIVE Soon! 🔥
+
+━━━━━━━━━━━━━━━━━━━━━━
+⚡️ Don't Miss This Opportunity! ⚡️
+━━━━━━━━━━━━━━━━━━━━━━
+
+📈 Learn From The Best & Start Earning Today! 💰
+
+👇 Click Below To Join The Session!</b>"""
 
 
 # ── Helpers ───────────────────────────────────────────────────────
@@ -109,125 +122,131 @@ def load_users():
     with open(USERS_FILE, "r") as f:
         return json.load(f)
 
-
 def save_users(users):
     with open(USERS_FILE, "w") as f:
         json.dump(users, f)
 
+scheduler = AsyncIOScheduler()
 
-# ── Withdrawal sender ─────────────────────────────────────────────
-async def send_withdrawal(bot, user_id):
+
+# ── Message Senders ───────────────────────────────────────────────
+
+async def send_msg6_loop(bot, user_id):
+    """Message 6 - ALPHAPUBLIC.PNG - loops every 24 hours"""
+    try:
+        with open("ALPHAPUBLIC.PNG", "rb") as photo:
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=photo,
+                caption=MSG6_CAPTION,
+                reply_markup=msg6_markup,
+                parse_mode="HTML"
+            )
+        print(f"✅ Msg6 (Public) sent to {user_id}")
+    except Exception as e:
+        print(f"❌ Msg6 error for {user_id}: {e}")
+
+    # Schedule next loop after 24 hours (or 1 min in test mode)
+    scheduler.add_job(
+        send_msg6_loop,
+        trigger=DateTrigger(run_date=datetime.now() + hours(24)),
+        args=[bot, user_id],
+        id=f"msg6_loop_{user_id}",
+        replace_existing=True
+    )
+    print(f"🔁 Msg6 loop rescheduled for {user_id}")
+
+
+async def send_msg5(bot, user_id):
+    """Message 5 - 12 Feedback images after 2 hours"""
+    try:
+        media = []
+        for i in range(1, 13):
+            with open(f"ALPHAFEEDBACK{i}.JPG", "rb") as f:
+                data = f.read()
+            if i == 12:
+                media.append(InputMediaPhoto(data, caption=MSG5_CAPTION, parse_mode="HTML"))
+            else:
+                media.append(InputMediaPhoto(data))
+
+        await bot.send_media_group(chat_id=user_id, media=media)
+        await bot.send_message(
+            chat_id=user_id,
+            text="👇 Choose your next step:",
+            reply_markup=msg5_markup,
+            disable_web_page_preview=True
+        )
+        print(f"✅ Msg5 (Feedback) sent to {user_id}")
+    except Exception as e:
+        print(f"❌ Msg5 error for {user_id}: {e}")
+
+    # Schedule msg6 after 3 hours
+    scheduler.add_job(
+        send_msg6_loop,
+        trigger=DateTrigger(run_date=datetime.now() + hours(3)),
+        args=[bot, user_id],
+        id=f"msg6_{user_id}",
+        replace_existing=True
+    )
+    print(f"📅 Msg6 scheduled for {user_id}")
+
+
+async def send_msg4(bot, user_id):
+    """Message 4 - Withdrawal images after 30 min"""
     try:
         with open("WITHDRAWL1.jpg", "rb") as w1, open("WITHDRAWL2.jpg", "rb") as w2:
             await bot.send_media_group(
                 chat_id=user_id,
                 media=[
                     InputMediaPhoto(w1),
-                    InputMediaPhoto(w2, caption=WITHDRAWAL_CAPTION, parse_mode="HTML"),
+                    InputMediaPhoto(w2, caption=MSG4_CAPTION, parse_mode="HTML"),
                 ]
             )
         await bot.send_message(
             chat_id=user_id,
             text="👇 Choose your next step:",
-            reply_markup=withdrawal_markup,
+            reply_markup=msg4_markup,
             disable_web_page_preview=True
         )
-        print(f"Withdrawal sent to {user_id}")
+        print(f"✅ Msg4 (Withdrawal) sent to {user_id}")
     except Exception as e:
-        print(f"Withdrawal error for {user_id}: {e}")
+        print(f"❌ Msg4 error for {user_id}: {e}")
 
-
-# ── Poster5 sender ────────────────────────────────────────────────
-async def send_poster5(bot, user_id):
-    try:
-        with open("poster5.jpg", "rb") as photo:
-            await bot.send_photo(
-                chat_id=user_id,
-                photo=photo,
-                caption=POSTER5_CAPTION,
-                reply_markup=poster5_markup,
-                parse_mode="HTML"
-            )
-        print(f"Poster5 sent to {user_id}")
-
-        # ✅ NORMAL: 55 minutes after poster5
-        scheduler.add_job(
-            send_withdrawal,
-            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=55)),
-            args=[bot, user_id],
-            id=f"withdrawal_{user_id}",
-            replace_existing=True
-        )
-        print(f"Withdrawal scheduled for {user_id} in 55 minutes")
-    except Exception as e:
-        print(f"Poster5 error for {user_id}: {e}")
-
-
-# ── Giveaway sender ───────────────────────────────────────────────
-async def send_giveaway(bot, user_id):
-    try:
-        with open("IPHONE1.jpg", "rb") as p1, open("IPHONE2.jpg", "rb") as p2:
-            await bot.send_media_group(
-                chat_id=user_id,
-                media=[
-                    InputMediaPhoto(p1),
-                    InputMediaPhoto(p2, caption=GIVEAWAY_CAPTION, parse_mode="HTML"),
-                ]
-            )
-        await bot.send_message(
-            chat_id=user_id,
-            text="👇 Choose your next step:",
-            reply_markup=giveaway_markup,
-            disable_web_page_preview=True
-        )
-        print(f"Giveaway sent to {user_id}")
-
-        # ✅ NORMAL: 30 minutes after giveaway
-        scheduler.add_job(
-            send_poster5,
-            trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=30)),
-            args=[bot, user_id],
-            id=f"poster5_{user_id}",
-            replace_existing=True
-        )
-        print(f"Poster5 scheduled for {user_id} in 30 minutes")
-
-    except Exception as e:
-        print(f"Giveaway error for {user_id}: {e}")
-
-
-# ── Funnel sender ─────────────────────────────────────────────────
-async def send_funnel_message(bot, user_id, step):
-    users = load_users()
-    uid = str(user_id)
-    if uid not in users:
-        return
-
-    msg_index = step % len(FUNNEL_MESSAGES)
-    image_file, caption, markup = FUNNEL_MESSAGES[msg_index]
-
-    try:
-        with open(image_file, "rb") as photo:
-            await bot.send_photo(chat_id=user_id, photo=photo, caption=caption, reply_markup=markup, parse_mode="HTML")
-    except Exception as e:
-        print(f"Failed to send funnel message to {user_id}: {e}")
-        return
-
-    next_step = step + 1
-    delay_hours = FUNNEL_DELAYS[next_step] if next_step < len(FUNNEL_DELAYS) else random.randint(3, 24)
-
-    users[uid]["step"] = next_step
-    save_users(users)
-
-    run_time = datetime.now() + timedelta(hours=delay_hours)
+    # Schedule msg5 after 2 hours
     scheduler.add_job(
-        send_funnel_message,
-        trigger=DateTrigger(run_date=run_time),
-        args=[bot, user_id, next_step],
-        id=f"funnel_{user_id}_{next_step}",
+        send_msg5,
+        trigger=DateTrigger(run_date=datetime.now() + hours(2)),
+        args=[bot, user_id],
+        id=f"msg5_{user_id}",
         replace_existing=True
     )
-    print(f"Next funnel message for {user_id} in {delay_hours} hours (step {next_step})")
+    print(f"📅 Msg5 scheduled for {user_id}")
+
+
+async def send_msg3(bot, user_id):
+    """Message 3 - ALPHA1VIDEO.MP4 after 15 min"""
+    try:
+        with open("ALPHA1VIDEO.MP4", "rb") as video:
+            await bot.send_video(
+                chat_id=user_id,
+                video=video,
+                caption=MSG3_CAPTION,
+                reply_markup=msg3_markup,
+                parse_mode="HTML"
+            )
+        print(f"✅ Msg3 (Alpha Video) sent to {user_id}")
+    except Exception as e:
+        print(f"❌ Msg3 error for {user_id}: {e}")
+
+    # Schedule msg4 after 30 min
+    scheduler.add_job(
+        send_msg4,
+        trigger=DateTrigger(run_date=datetime.now() + mins(30)),
+        args=[bot, user_id],
+        id=f"msg4_{user_id}",
+        replace_existing=True
+    )
+    print(f"📅 Msg4 scheduled for {user_id}")
 
 
 # ── /start handler ────────────────────────────────────────────────
@@ -237,46 +256,44 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     users = load_users()
     if uid not in users:
-        users[uid] = {"step": 0, "joined": str(datetime.now())}
+        users[uid] = {"joined": str(datetime.now())}
         save_users(users)
 
-    # 1. Send poster2 as welcome
+    # ── Message 1: THEALPHAVIP.PNG ────────────────────────────────
     try:
-        with open("poster2.jpg", "rb") as photo:
-            await update.message.reply_photo(photo=photo, caption=POSTER2_CAPTION, reply_markup=poster2_markup, parse_mode="HTML")
+        with open("THEALPHAVIP.PNG", "rb") as photo:
+            await update.message.reply_photo(
+                photo=photo,
+                caption=MSG1_CAPTION,
+                reply_markup=msg1_markup,
+                parse_mode="HTML"
+            )
+        print(f"✅ Msg1 sent to {user.first_name}")
     except Exception as e:
-        print(f"Poster error: {e}")
-        await update.message.reply_text(POSTER2_CAPTION, reply_markup=poster2_markup, parse_mode="HTML")
+        print(f"❌ Msg1 error: {e}")
 
-    # 2. Wait 5 seconds then send circle video + buttons
-    await asyncio.sleep(5)
+    # ── Message 2: alphavidoe2.MP4 (circle video) ─────────────────
+    await asyncio.sleep(3)
     try:
-        with open("video.MP4", "rb") as video:
+        with open("alphavidoe2.MP4", "rb") as video:
             await update.message.reply_video_note(video_note=video)
-        await update.message.reply_text("👇 Choose your next step:", reply_markup=video_markup)
+        await update.message.reply_text(
+            "👇 Choose your next step:",
+            reply_markup=msg2_markup
+        )
+        print(f"✅ Msg2 (circle video) sent to {user.first_name}")
     except Exception as e:
-        print(f"Video error: {e}")
-        await update.message.reply_text("👇 Choose your next step:", reply_markup=video_markup)
+        print(f"❌ Msg2 error: {e}")
 
-    # 3. ✅ NORMAL: Giveaway after 15 minutes
+    # ── Schedule Message 3 after 15 min ───────────────────────────
     scheduler.add_job(
-        send_giveaway,
-        trigger=DateTrigger(run_date=datetime.now() + timedelta(minutes=15)),
+        send_msg3,
+        trigger=DateTrigger(run_date=datetime.now() + mins(15)),
         args=[context.bot, user.id],
-        id=f"giveaway_{user.id}",
+        id=f"msg3_{user.id}",
         replace_existing=True
     )
-
-    # 4. Schedule funnel starting after 2 hours
-    scheduler.add_job(
-        send_funnel_message,
-        trigger=DateTrigger(run_date=datetime.now() + timedelta(hours=FUNNEL_DELAYS[0])),
-        args=[context.bot, user.id, 0],
-        id=f"funnel_{user.id}_0",
-        replace_existing=True
-    )
-
-    print(f"Funnel + Giveaway scheduled for {user.first_name}")
+    print(f"📅 Msg3 scheduled for {user.first_name} ({'1 min TEST' if TEST_MODE else '15 min'})")
 
 
 # ── /broadcast handler ────────────────────────────────────────────
@@ -293,34 +310,12 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"✅ Broadcast sent to {sent} users.")
 
 
-# ── Channel post forwarder ─────────────────────────────────────────
-async def channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    post = update.channel_post
-    if not post:
-        return
-    users = load_users()
-    sent = 0
-    for user_id in users:
-        try:
-            await context.bot.copy_message(
-                chat_id=int(user_id),
-                from_chat_id=post.chat.id,
-                message_id=post.message_id,
-                reply_markup=poster2_markup
-            )
-            sent += 1
-        except Exception as e:
-            print(e)
-    print(f"Channel post forwarded to {sent} users")
-
-
 # ── App setup ─────────────────────────────────────────────────────
 app = Application.builder().token(BOT_TOKEN).build()
 scheduler.start()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("broadcast", broadcast))
-app.add_handler(MessageHandler(filters.ChatType.CHANNEL, channel_post))
 
-print("✅ Bot is running...")
+print("✅ Alpha Trader Bot is running... (TEST MODE ON)" if TEST_MODE else "✅ Alpha Trader Bot is running... (PRODUCTION MODE)")
 app.run_polling()
