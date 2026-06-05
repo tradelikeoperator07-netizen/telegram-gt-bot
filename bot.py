@@ -10,7 +10,7 @@ USERS_FILE = "users.json"
 
 # ── TEST MODE: all delays = 1 minute ─────────────────────────────
 # Change to False when ready for production
-TEST_MODE = True
+TEST_MODE = False
 
 def mins(m):
     return timedelta(minutes=1) if TEST_MODE else timedelta(minutes=m)
