@@ -25,13 +25,11 @@ msg1_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("🟢 CONTACT OWNER 🤝", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP%E2%9D%A4%EF%B8%8F%F0%9F%94%A5")]
 ])
 
-# Message 2 - ALPHA2cirvideo (instant) - now has 2 buttons
 msg2_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("🔴 JOIN FREE GROUP CLICK 📈", url="https://telegram.me/+4Ds1pUXu4VUzMzhl")],
     [InlineKeyboardButton("🟢 CONTACT OWNER 🤝", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP%E2%9D%A4%EF%B8%8F%F0%9F%94%A5")]
 ])
 
-# Message 3 - alphavidoe2 circle video (+15 min) - now has 1 button
 msg3_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("🤖🔥 GET SIGNAL BOT ACCESS", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir,%20I%20Want%20Your%20Quotex%20Signal%20Bot%20%F0%9F%A4%96%F0%9F%94%A5%0A%0APlease%20Guide%20Me%20On%20The%20Process%20To%20Get%20Access.%20%E2%9D%A4%EF%B8%8F")]
 ])
@@ -61,26 +59,6 @@ MSG1_CAPTION = """<b>💰 You're Here Because You Want To Earn Money! 💰
 ━━━━━━━━━━━━━━━━━━━━━━
 
 👇 Click Below To Join Now!</b>"""
-
-# Message 2 caption (was msg3) - benefits text
-MSG2_CAPTION = """<b>🚨 To Continue, Please Join Our Official Channel 🌟
-
-━━━━━━━━━━━━━━━━━━━━━━
-⚡️ THE ALPHA TRADERZ ⚡️
-━━━━━━━━━━━━━━━━━━━━━━
-
-▶️ 95% Accuracy Trades 📈
-▶️ Personal LOSS Recovery 📁
-▶️ DAILY BUG TOURNAMENT 📊
-▶️ Free 10–15 SIGNALS 🚀
-▶️ Full COPY-TRADING Access 🛸
-▶️ AI Trading HACKBOT 🤖
-
-━━━━━━━━━━━━━━━━━━━━━━
-🔗 JOIN FREE GROUP: https://telegram.me/+4Ds1pUXu4VUzMzhl
-━━━━━━━━━━━━━━━━━━━━━━
-
-👇 Choose Your Next Step!</b>"""
 
 MSG4_CAPTION = """<b>💸 You're Here Because You Want To Earn Money! 💰
 
@@ -234,7 +212,7 @@ async def send_msg3(bot, user_id):
             text="👇 Choose your next step:",
             reply_markup=msg3_markup
         )
-        print(f"✅ Msg3 (circle video) sent to {user_id}")
+        print(f"✅ Msg3 (alphavidoe2 circle) sent to {user_id}")
     except Exception as e:
         print(f"❌ Msg3 error for {user_id}: {e}")
 
@@ -271,17 +249,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"❌ Msg1 error: {e}")
 
-    # ── Message 2: ALPHA2cirvideo.MP4 + caption + 2 buttons (Instant) ──
+    # ── Message 2: ALPHA2cirvideo.MP4 circle video + 2 buttons (Instant) ──
     await asyncio.sleep(3)
     try:
         with open("ALPHA2cirvideo.MP4", "rb") as video:
-            await update.message.reply_video(
-                video=video,
-                caption=MSG2_CAPTION,
-                reply_markup=msg2_markup,
-                parse_mode="HTML"
-            )
-        print(f"✅ Msg2 (ALPHA2cirvideo + caption) sent to {user.first_name}")
+            await update.message.reply_video_note(video_note=video)
+        await update.message.reply_text(
+            "👇 Choose your next step:",
+            reply_markup=msg2_markup
+        )
+        print(f"✅ Msg2 (ALPHA2cirvideo circle) sent to {user.first_name}")
     except Exception as e:
         print(f"❌ Msg2 error: {e}")
 
