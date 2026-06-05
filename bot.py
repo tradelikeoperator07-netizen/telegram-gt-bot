@@ -1,7 +1,7 @@
 import json, os, asyncio
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, ContextTypes
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 
@@ -25,13 +25,15 @@ msg1_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("🟢 CONTACT OWNER 🤝", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP%E2%9D%A4%EF%B8%8F%F0%9F%94%A5")]
 ])
 
+# Message 2 - ALPHA2cirvideo (instant) - now has 2 buttons
 msg2_markup = InlineKeyboardMarkup([
-    [InlineKeyboardButton("🤖🔥 GET SIGNAL BOT ACCESS", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir,%20I%20Want%20Your%20Quotex%20Signal%20Bot%20%F0%9F%A4%96%F0%9F%94%A5%0A%0APlease%20Guide%20Me%20On%20The%20Process%20To%20Get%20Access.%20%E2%9D%A4%EF%B8%8F")]
-])
-
-msg3_markup = InlineKeyboardMarkup([
     [InlineKeyboardButton("🔴 JOIN FREE GROUP CLICK 📈", url="https://telegram.me/+4Ds1pUXu4VUzMzhl")],
     [InlineKeyboardButton("🟢 CONTACT OWNER 🤝", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir%2C%20I%20Want%20To%20Build%20A%20Lifestyle%20Like%20Yours.%20Please%20Guide%20Me%20On%20The%20Process%20To%20Join%20Your%20VIP%E2%9D%A4%EF%B8%8F%F0%9F%94%A5")]
+])
+
+# Message 3 - alphavidoe2 circle video (+15 min) - now has 1 button
+msg3_markup = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🤖🔥 GET SIGNAL BOT ACCESS", url="https://t.me/Alphaz_Admin?text=Alpha%20Sir,%20I%20Want%20Your%20Quotex%20Signal%20Bot%20%F0%9F%A4%96%F0%9F%94%A5%0A%0APlease%20Guide%20Me%20On%20The%20Process%20To%20Get%20Access.%20%E2%9D%A4%EF%B8%8F")]
 ])
 
 msg4_markup = InlineKeyboardMarkup([
@@ -60,7 +62,8 @@ MSG1_CAPTION = """<b>💰 You're Here Because You Want To Earn Money! 💰
 
 👇 Click Below To Join Now!</b>"""
 
-MSG3_CAPTION = """<b>🚨 To Continue, Please Join Our Official Channel 🌟
+# Message 2 caption (was msg3) - benefits text
+MSG2_CAPTION = """<b>🚨 To Continue, Please Join Our Official Channel 🌟
 
 ━━━━━━━━━━━━━━━━━━━━━━
 ⚡️ THE ALPHA TRADERZ ⚡️
@@ -144,7 +147,6 @@ async def send_msg6_loop(bot, user_id):
     except Exception as e:
         print(f"❌ Msg6 error for {user_id}: {e}")
 
-    # Loop every 24 hours
     scheduler.add_job(
         send_msg6_loop,
         trigger=DateTrigger(run_date=datetime.now() + hours(24)),
@@ -178,7 +180,6 @@ async def send_msg5(bot, user_id):
     except Exception as e:
         print(f"❌ Msg5 error for {user_id}: {e}")
 
-    # Schedule msg6 after 3 hours
     scheduler.add_job(
         send_msg6_loop,
         trigger=DateTrigger(run_date=datetime.now() + hours(3)),
@@ -210,7 +211,6 @@ async def send_msg4(bot, user_id):
     except Exception as e:
         print(f"❌ Msg4 error for {user_id}: {e}")
 
-    # Schedule msg5 after 2 hours
     scheduler.add_job(
         send_msg5,
         trigger=DateTrigger(run_date=datetime.now() + hours(2)),
@@ -221,22 +221,23 @@ async def send_msg4(bot, user_id):
     print(f"📅 Msg5 scheduled for {user_id}")
 
 
-# ── Message 3 - alphavidoe2.MP4 (+15 min) ────────────────────────
+# ── Message 3 - alphavidoe2.MP4 circle video (+15 min) ───────────
 async def send_msg3(bot, user_id):
     try:
         with open("alphavidoe2.MP4", "rb") as video:
-            await bot.send_video(
+            await bot.send_video_note(
                 chat_id=user_id,
-                video=video,
-                caption=MSG3_CAPTION,
-                reply_markup=msg3_markup,
-                parse_mode="HTML"
+                video_note=video
             )
-        print(f"✅ Msg3 (alphavidoe2) sent to {user_id}")
+        await bot.send_message(
+            chat_id=user_id,
+            text="👇 Choose your next step:",
+            reply_markup=msg3_markup
+        )
+        print(f"✅ Msg3 (circle video) sent to {user_id}")
     except Exception as e:
         print(f"❌ Msg3 error for {user_id}: {e}")
 
-    # Schedule msg4 after 30 min
     scheduler.add_job(
         send_msg4,
         trigger=DateTrigger(run_date=datetime.now() + mins(30)),
@@ -270,20 +271,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"❌ Msg1 error: {e}")
 
-    # ── Message 2: ALPHA2cirvideo.MP4 circle video (Instant) ─────
+    # ── Message 2: ALPHA2cirvideo.MP4 + caption + 2 buttons (Instant) ──
     await asyncio.sleep(3)
     try:
         with open("ALPHA2cirvideo.MP4", "rb") as video:
-            await update.message.reply_video_note(video_note=video)
-        await update.message.reply_text(
-            "👇 Choose your next step:",
-            reply_markup=msg2_markup
-        )
-        print(f"✅ Msg2 (circle video) sent to {user.first_name}")
+            await update.message.reply_video(
+                video=video,
+                caption=MSG2_CAPTION,
+                reply_markup=msg2_markup,
+                parse_mode="HTML"
+            )
+        print(f"✅ Msg2 (ALPHA2cirvideo + caption) sent to {user.first_name}")
     except Exception as e:
         print(f"❌ Msg2 error: {e}")
 
-    # ── Schedule Message 3 after 15 min ──────────────────────────
+    # ── Schedule Message 3: alphavidoe2 circle video after 15 min ─
     scheduler.add_job(
         send_msg3,
         trigger=DateTrigger(run_date=datetime.now() + mins(15)),
