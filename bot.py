@@ -1,6 +1,6 @@
 import json, os, asyncio
 from datetime import datetime, timedelta
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, InputMediaVideo
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
@@ -9,7 +9,7 @@ BOT_TOKEN = "8264438185:AAEGGRgQ5_FU-ERfoEZU05IPtywuLorU8ss"
 USERS_FILE = "users.json"
 
 # ── TEST MODE: all delays = 1 minute ─────────────────────────────
-# Change to False and set real times when ready for production
+# Change to False when ready for production
 TEST_MODE = True
 
 def mins(m):
@@ -129,10 +129,8 @@ def save_users(users):
 scheduler = AsyncIOScheduler()
 
 
-# ── Message Senders ───────────────────────────────────────────────
-
+# ── Message 6 - ALPHAPUBLIC.PNG (loops every 24 hrs) ─────────────
 async def send_msg6_loop(bot, user_id):
-    """Message 6 - ALPHAPUBLIC.PNG - loops every 24 hours"""
     try:
         with open("ALPHAPUBLIC.PNG", "rb") as photo:
             await bot.send_photo(
@@ -142,11 +140,11 @@ async def send_msg6_loop(bot, user_id):
                 reply_markup=msg6_markup,
                 parse_mode="HTML"
             )
-        print(f"✅ Msg6 (Public) sent to {user_id}")
+        print(f"✅ Msg6 (Public Session) sent to {user_id}")
     except Exception as e:
         print(f"❌ Msg6 error for {user_id}: {e}")
 
-    # Schedule next loop after 24 hours (or 1 min in test mode)
+    # Loop every 24 hours
     scheduler.add_job(
         send_msg6_loop,
         trigger=DateTrigger(run_date=datetime.now() + hours(24)),
@@ -157,8 +155,8 @@ async def send_msg6_loop(bot, user_id):
     print(f"🔁 Msg6 loop rescheduled for {user_id}")
 
 
+# ── Message 5 - 12 Feedback images (+2 hours) ────────────────────
 async def send_msg5(bot, user_id):
-    """Message 5 - 12 Feedback images after 2 hours"""
     try:
         media = []
         for i in range(1, 13):
@@ -176,7 +174,7 @@ async def send_msg5(bot, user_id):
             reply_markup=msg5_markup,
             disable_web_page_preview=True
         )
-        print(f"✅ Msg5 (Feedback) sent to {user_id}")
+        print(f"✅ Msg5 (Feedback x12) sent to {user_id}")
     except Exception as e:
         print(f"❌ Msg5 error for {user_id}: {e}")
 
@@ -191,10 +189,10 @@ async def send_msg5(bot, user_id):
     print(f"📅 Msg6 scheduled for {user_id}")
 
 
+# ── Message 4 - QUOTEXWITH (+30 min) ─────────────────────────────
 async def send_msg4(bot, user_id):
-    """Message 4 - Withdrawal images after 30 min"""
     try:
-        with open("WITHDRAWL1.jpg", "rb") as w1, open("WITHDRAWL2.jpg", "rb") as w2:
+        with open("QUOTEXWITH.JPG", "rb") as w1, open("QUOTEXWITH1.JPG", "rb") as w2:
             await bot.send_media_group(
                 chat_id=user_id,
                 media=[
@@ -208,7 +206,7 @@ async def send_msg4(bot, user_id):
             reply_markup=msg4_markup,
             disable_web_page_preview=True
         )
-        print(f"✅ Msg4 (Withdrawal) sent to {user_id}")
+        print(f"✅ Msg4 (Quotex Withdrawal) sent to {user_id}")
     except Exception as e:
         print(f"❌ Msg4 error for {user_id}: {e}")
 
@@ -223,10 +221,10 @@ async def send_msg4(bot, user_id):
     print(f"📅 Msg5 scheduled for {user_id}")
 
 
+# ── Message 3 - alphavidoe2.MP4 (+15 min) ────────────────────────
 async def send_msg3(bot, user_id):
-    """Message 3 - ALPHA1VIDEO.MP4 after 15 min"""
     try:
-        with open("ALPHA1VIDEO.MP4", "rb") as video:
+        with open("alphavidoe2.MP4", "rb") as video:
             await bot.send_video(
                 chat_id=user_id,
                 video=video,
@@ -234,7 +232,7 @@ async def send_msg3(bot, user_id):
                 reply_markup=msg3_markup,
                 parse_mode="HTML"
             )
-        print(f"✅ Msg3 (Alpha Video) sent to {user_id}")
+        print(f"✅ Msg3 (alphavidoe2) sent to {user_id}")
     except Exception as e:
         print(f"❌ Msg3 error for {user_id}: {e}")
 
@@ -259,7 +257,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         users[uid] = {"joined": str(datetime.now())}
         save_users(users)
 
-    # ── Message 1: THEALPHAVIP.PNG ────────────────────────────────
+    # ── Message 1: THEALPHAVIP.PNG (Instant) ─────────────────────
     try:
         with open("THEALPHAVIP.PNG", "rb") as photo:
             await update.message.reply_photo(
@@ -272,10 +270,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"❌ Msg1 error: {e}")
 
-    # ── Message 2: alphavidoe2.MP4 (circle video) ─────────────────
+    # ── Message 2: ALPHA2cirvideo.MP4 circle video (Instant) ─────
     await asyncio.sleep(3)
     try:
-        with open("alphavidoe2.MP4", "rb") as video:
+        with open("ALPHA2cirvideo.MP4", "rb") as video:
             await update.message.reply_video_note(video_note=video)
         await update.message.reply_text(
             "👇 Choose your next step:",
@@ -285,7 +283,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"❌ Msg2 error: {e}")
 
-    # ── Schedule Message 3 after 15 min ───────────────────────────
+    # ── Schedule Message 3 after 15 min ──────────────────────────
     scheduler.add_job(
         send_msg3,
         trigger=DateTrigger(run_date=datetime.now() + mins(15)),
